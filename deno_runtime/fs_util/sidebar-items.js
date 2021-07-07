@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["canonicalize_path","Similar to `std::fs::canonicalize()` but strips UNC prefixes on Windows."],["normalize_path","Normalize all intermediate components of the path (ie. remove “./” and “../” components). Similar to `fs::canonicalize()` but doesn’t resolve symlinks."],["resolve_from_cwd",""]]});

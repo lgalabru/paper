@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["MainWorker","This worker is created and used by almost all subcommands in Deno executable."],["WorkerOptions",""]]});

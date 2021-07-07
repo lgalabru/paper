@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["get_declaration",""],["get_error_class_name",""],["init","Load and execute the javascript code."]],"struct":[["DomExceptionInvalidCharacterError",""],["DomExceptionQuotaExceededError",""]]});

@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["infer_name_from_url",""],["install",""]]});

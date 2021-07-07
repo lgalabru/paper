@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["ResolutionResult",""]],"fn":[["watch_func","Creates a file watcher, which will call `resolver` with every file change."]]});

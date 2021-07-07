@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["deno_core"] = [{"text":"impl V8InspectorClientImpl for <a class=\"struct\" href=\"deno_core/struct.JsRuntimeInspector.html\" title=\"struct deno_core::JsRuntimeInspector\">JsRuntimeInspector</a>","synthetic":false,"types":["deno_core::inspector::JsRuntimeInspector"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

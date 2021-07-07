@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["black_on_green",""],["bold",""],["cyan",""],["gray",""],["green",""],["green_bold",""],["intense_blue",""],["italic",""],["italic_bold",""],["italic_gray",""],["red",""],["red_bold",""],["use_color",""],["white_on_red",""],["yellow",""]]});

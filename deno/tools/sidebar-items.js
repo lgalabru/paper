@@ -1,0 +1,1 @@
+initSidebarItems({"mod":[["coverage",""],["doc",""],["fmt","This module provides file formatting utilities using `dprint-plugin-typescript`."],["installer",""],["lint","This module provides file formatting utilities using `deno_lint`."],["repl",""],["standalone",""],["test_runner",""],["upgrade","This module provides feature to upgrade deno executable"]]});

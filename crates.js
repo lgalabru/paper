@@ -1,0 +1,1 @@
+window.ALL_CRATES = ["clarinet","deno","deno_bench_util","deno_broadcast_channel","deno_console","deno_core","deno_crypto","deno_fetch","deno_file","deno_runtime","deno_timers","deno_url","deno_web","deno_webidl","deno_websocket","test_server","test_util","xtask"];

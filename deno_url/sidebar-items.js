@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["get_declaration",""],["init",""],["op_url_parse","Parse `UrlParseArgs::href` with an optional `UrlParseArgs::base_href`, or an optional part to “set” after parsing. Return `UrlParts`."],["op_url_parse_search_params",""],["op_url_stringify_search_params",""]],"struct":[["UrlParseArgs",""],["UrlParts",""]]});

@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["PermissionState","Tri-state value for storing permission state"]],"fn":[["resolve_read_allowlist",""],["resolve_write_allowlist",""]],"struct":[["EnvDescriptor",""],["NetDescriptor",""],["Permissions",""],["PermissionsOptions",""],["ReadDescriptor",""],["RunDescriptor",""],["UnaryPermission",""],["UnitPermission",""],["WriteDescriptor",""]]});

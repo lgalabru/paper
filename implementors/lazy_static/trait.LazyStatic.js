@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["clarinet"] = [{"text":"impl <a class=\"trait\" href=\"https://docs.rs/lazy_static/1.4.0/lazy_static/trait.LazyStatic.html\" title=\"trait lazy_static::LazyStatic\">LazyStatic</a> for <a class=\"struct\" href=\"clarinet/test/deno/sessions/struct.SESSIONS.html\" title=\"struct clarinet::test::deno::sessions::SESSIONS\">SESSIONS</a>","synthetic":false,"types":["clarinet::test::deno::sessions::SESSIONS"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

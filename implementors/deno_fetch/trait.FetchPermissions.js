@@ -1,0 +1,4 @@
+(function() {var implementors = {};
+implementors["deno_fetch"] = [];
+implementors["deno_runtime"] = [{"text":"impl <a class=\"trait\" href=\"deno_fetch/trait.FetchPermissions.html\" title=\"trait deno_fetch::FetchPermissions\">FetchPermissions</a> for <a class=\"struct\" href=\"deno_runtime/permissions/struct.Permissions.html\" title=\"struct deno_runtime::permissions::Permissions\">Permissions</a>","synthetic":false,"types":["deno_runtime::permissions::Permissions"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

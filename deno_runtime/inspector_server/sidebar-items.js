@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["InspectorInfo","Inspector information that is sent from the isolate thread to the server thread when a new inspector is created."],["InspectorServer","Websocket server that is used to proxy connections from devtools to the inspector."]]});

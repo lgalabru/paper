@@ -1,0 +1,1 @@
+initSidebarItems({"mod":[["chain_config",""],["project_config",""]]});

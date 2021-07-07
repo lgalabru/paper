@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["OpAddr",""]],"fn":[["init",""]],"struct":[["IpAddr",""],["NameServer",""],["OpConn",""],["OpPacket","A received datagram packet (from udp or unixpacket)"],["ResolveAddrArgs",""],["ResolveDnsOption",""],["TcpListenerResource",""]]});

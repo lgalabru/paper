@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["deno_core"] = [{"text":"impl Stream for <a class=\"struct\" href=\"deno_core/struct.RecursiveModuleLoad.html\" title=\"struct deno_core::RecursiveModuleLoad\">RecursiveModuleLoad</a>","synthetic":false,"types":["deno_core::modules::RecursiveModuleLoad"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

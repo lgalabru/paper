@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["get_declaration",""],["init",""],["op_broadcast_recv",""],["op_broadcast_send",""],["op_broadcast_subscribe",""],["op_broadcast_unsubscribe",""]],"struct":[["InMemoryBroadcastChannel",""]],"trait":[["BroadcastChannel",""]],"type":[["Message",""]]});

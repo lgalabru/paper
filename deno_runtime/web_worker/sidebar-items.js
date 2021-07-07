@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["WorkerEvent","Events that are sent to host from child worker."]],"fn":[["run_web_worker","This function should be called from a thread dedicated to this worker."]],"struct":[["WebWorker","This struct is an implementation of `Worker` Web API"],["WebWorkerHandle",""],["WebWorkerInternalHandle",""],["WebWorkerOptions",""],["WorkerId",""]]});
