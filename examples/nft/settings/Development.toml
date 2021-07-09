@@ -1,0 +1,42 @@
+[network]
+name = "Development"
+
+[accounts.deployer]
+mnemonic = "fetch outside black test wash cover just actual execute nice door want airport betray quantum stamp fish act pen trust portion fatigue scissors vague"
+balance = 1_000_000
+
+[accounts.wallet_1]
+mnemonic = "spoil sock coyote include verify comic jacket gain beauty tank flush victory illness edge reveal shallow plug hobby usual juice harsh pact wreck eight"
+balance = 1_000_000
+
+[accounts.wallet_2]
+mnemonic = "arrange scale orient half ugly kid bike twin magnet joke hurt fiber ethics super receive version wreck media fluid much abstract reward street alter"
+balance = 1_000_000
+
+[accounts.wallet_3]
+mnemonic = "glide clown kitchen picnic basket hidden asset beyond kid plug carbon talent drama wet pet rhythm hero nest purity baby bicycle ghost sponsor dragon"
+balance = 1_000_000
+
+[accounts.wallet_4]
+mnemonic = "pulp when detect fun unaware reduce promote tank success lecture cool cheese object amazing hunt plug wing month hello tunnel detect connect floor brush"
+balance = 1_000_000
+
+[accounts.wallet_5]
+mnemonic = "replace swing shove congress smoke banana tired term blanket nominee leave club myself swing egg virus answer bulk useful start decrease family energy february"
+balance = 1_000_000
+
+[accounts.wallet_6]
+mnemonic = "apology together shy taxi glare struggle hip camp engage lion possible during squeeze hen exotic marriage misery kiwi once quiz enough exhibit immense tooth"
+balance = 1_000_000
+
+[accounts.wallet_7]
+mnemonic = "antenna bitter find rely gadget father exact excuse cross easy elbow alcohol injury loud silk bird crime cabbage winter fit wide screen update october"
+balance = 1_000_000
+
+[accounts.wallet_8]
+mnemonic = "east load echo merit ignore hip tag obvious truly adjust smart panther deer aisle north hotel process frown lock property catch bless notice topple"
+balance = 1_000_000
+
+[accounts.wallet_9]
+mnemonic = "market ocean tortoise venue vivid coach machine category conduct enable insect jump fog file test core book chaos crucial burst version curious prosper fever"
+balance = 1_000_000
