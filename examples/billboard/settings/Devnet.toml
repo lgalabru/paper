@@ -1,5 +1,5 @@
 [network]
-name = "Development"
+name = "Devnet"
 
 [accounts.deployer]
 mnemonic = "fetch outside black test wash cover just actual execute nice door want airport betray quantum stamp fish act pen trust portion fatigue scissors vague"

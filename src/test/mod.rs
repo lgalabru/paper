@@ -6,6 +6,7 @@
 #![allow(non_upper_case_globals)]
 #![allow(unused_must_use)]
 
+use crate::utils;
 use std::path::PathBuf;
 
 mod deno;
@@ -29,20 +30,11 @@ pub fn run_tests(
     };
 }
 
-pub fn create_basic_runtime() -> tokio::runtime::Runtime {
-    tokio::runtime::Builder::new_current_thread()
-        .enable_io()
-        .enable_time()
-        .max_blocking_threads(32)
-        .build()
-        .unwrap()
-}
-
 pub fn block_on<F, R>(future: F) -> R
 where
     F: std::future::Future<Output = R>,
 {
-    let rt = create_basic_runtime();
+    let rt = utils::create_basic_runtime();
     rt.block_on(future)
 }
 

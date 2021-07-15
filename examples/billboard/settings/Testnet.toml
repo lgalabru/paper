@@ -1,5 +1,5 @@
 [network]
-name = "mocknet"
+name = "devnet"
 node_rpc_address = "http://localhost:20443"
 
 [accounts.deployer]

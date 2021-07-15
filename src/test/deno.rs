@@ -73,7 +73,7 @@ mod sessions {
 
         let mut chain_config_path = project_path.clone();
         chain_config_path.push("settings");
-        chain_config_path.push("Development.toml");
+        chain_config_path.push("Devnet.toml");
 
         let project_config = MainConfig::from_path(manifest_path);
         let chain_config = ChainConfig::from_path(&chain_config_path);
@@ -170,6 +170,7 @@ pub async fn do_run_tests(
 ) -> Result<bool, AnyError> {
     let mut flags = Flags::default();
     flags.unstable = true;
+    flags.reload = true;
     let program_state = ProgramState::build(flags.clone()).await?;
     let permissions = Permissions::from_options(&flags.clone().into());
     let mut project_path = manifest_path.clone();

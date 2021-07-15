@@ -1,47 +1,21 @@
-use std::collections::{BTreeMap, HashMap};
+use std::collections::HashMap;
 use std::fs::{self, File};
 use std::io::{prelude::*, BufReader, Read};
 use std::path::PathBuf;
 use std::{env, process};
 
-use crate::console::load_session;
+use crate::generate::{
+    self,
+    changes::{Changes, TOMLEdition},
+};
+use crate::integrate::{self, DevnetOrchestrator};
+use crate::poke::load_session;
+use crate::publish::{publish_contracts, Network};
 use crate::test::run_tests;
 use crate::types::{MainConfig, MainConfigFile, RequirementConfig};
-use crate::{
-    generators::{
-        self,
-        changes::{Changes, TOMLEdition},
-    },
-    utils::mnemonic,
-};
-
-use clarity_repl::clarity::codec::transaction::{
-    StacksTransaction, StacksTransactionSigner, TransactionAnchorMode, TransactionAuth,
-    TransactionPayload, TransactionPostConditionMode, TransactionPublicKeyEncoding,
-    TransactionSmartContract, TransactionSpendingCondition,
-};
-use clarity_repl::clarity::codec::StacksMessageCodec;
-use clarity_repl::{
-    clarity::{
-        codec::{
-            transaction::{
-                RecoverableSignature, SinglesigHashMode, SinglesigSpendingCondition,
-                TransactionVersion,
-            },
-            StacksString,
-        },
-        util::{
-            address::AddressHashMode,
-            secp256k1::{Secp256k1PrivateKey, Secp256k1PublicKey},
-            StacksAddress,
-        },
-    },
-    repl,
-};
+use clarity_repl::repl;
 
 use clap::Clap;
-use secp256k1::{PublicKey, SecretKey};
-use tiny_hderive::bip32::ExtendedPrivKey;
 use toml;
 
 #[derive(Clap)]
@@ -53,27 +27,30 @@ struct Opts {
 
 #[derive(Clap)]
 enum Command {
-    /// New subcommand
+    /// Create and scaffold a new project
     #[clap(name = "new")]
     New(GenerateProject),
     /// Contract subcommand
     #[clap(name = "contract")]
     Contract(Contract),
-    /// Console subcommand
-    #[clap(name = "console")]
-    Console(Console),
-    /// Test subcommand
+    /// Load contracts in a REPL for interactions
+    #[clap(name = "poke")]
+    Poke(Poke),
+    /// Execute test suite
     #[clap(name = "test")]
     Test(Test),
-    /// Check subcommand
+    /// Check contracts syntax
     #[clap(name = "check")]
     Check(Check),
-    /// Deploy subcommand
-    #[clap(name = "deploy")]
-    Deploy(Deploy),
-    /// Run subcommand
+    /// Publish contracts on chain
+    #[clap(name = "publish")]
+    Publish(Publish),
+    /// Execute Clarinet Extension
     #[clap(name = "run")]
     Run(Run),
+    /// Work on contracts integration
+    #[clap(name = "integrate")]
+    Integrate(Integrate),
 }
 
 #[derive(Clap)]
@@ -93,18 +70,12 @@ enum Contract {
 struct GenerateProject {
     /// Project's name
     pub name: String,
-    /// Print debug info
-    #[clap(short = 'd')]
-    pub debug: bool,
 }
 
 #[derive(Clap)]
 struct NewContract {
     /// Contract's name
     pub name: String,
-    /// Print debug info
-    #[clap(short = 'd')]
-    pub debug: bool,
     /// Path to Clarinet.toml
     #[clap(long = "manifest-path")]
     pub manifest_path: Option<String>,
@@ -114,9 +85,6 @@ struct NewContract {
 struct LinkContract {
     /// Contract id
     pub contract_id: String,
-    /// Print debug info
-    #[clap(short = 'd')]
-    pub debug: bool,
     /// Path to Clarinet.toml
     #[clap(long = "manifest-path")]
     pub manifest_path: Option<String>,
@@ -126,9 +94,6 @@ struct LinkContract {
 struct ForkContract {
     /// Contract id
     pub contract_id: String,
-    /// Print debug info
-    #[clap(short = 'd')]
-    pub debug: bool,
     /// Path to Clarinet.toml
     #[clap(long = "manifest-path")]
     pub manifest_path: Option<String>,
@@ -138,10 +103,14 @@ struct ForkContract {
 }
 
 #[derive(Clap)]
-struct Console {
-    /// Print debug info
-    #[clap(short = 'd')]
-    pub debug: bool,
+struct Poke {
+    /// Path to Clarinet.toml
+    #[clap(long = "manifest-path")]
+    pub manifest_path: Option<String>,
+}
+
+#[derive(Clap)]
+struct Integrate {
     /// Path to Clarinet.toml
     #[clap(long = "manifest-path")]
     pub manifest_path: Option<String>,
@@ -149,9 +118,6 @@ struct Console {
 
 #[derive(Clap)]
 struct Test {
-    /// Print debug info
-    #[clap(short = 'd')]
-    pub debug: bool,
     /// Generate coverage
     #[clap(long = "coverage")]
     pub coverage: bool,
@@ -167,9 +133,6 @@ struct Test {
 
 #[derive(Clap)]
 struct Run {
-    /// Print debug info
-    #[clap(short = 'd')]
-    pub debug: bool,
     /// Script to run
     pub script: String,
     /// Path to Clarinet.toml
@@ -181,16 +144,28 @@ struct Run {
 }
 
 #[derive(Clap)]
-struct Deploy {
-    /// Print debug info
-    #[clap(short = 'd')]
-    pub debug: bool,
-    /// Deploy contracts on mocknet, using settings/Mocknet.toml
-    #[clap(long = "mocknet", conflicts_with = "testnet")]
-    pub mocknet: bool,
-    /// Deploy contracts on mocknet, using settings/Testnet.toml
-    #[clap(long = "testnet", conflicts_with = "mocknet")]
+struct Publish {
+    /// Deploy contracts on devnet, using settings/Devnet.toml
+    #[clap(
+        long = "devnet",
+        conflicts_with = "testnet",
+        conflicts_with = "mainnet"
+    )]
+    pub devnet: bool,
+    /// Deploy contracts on testnet, using settings/Testnet.toml
+    #[clap(
+        long = "testnet",
+        conflicts_with = "devnet",
+        conflicts_with = "mainnet"
+    )]
     pub testnet: bool,
+    /// Deploy contracts on mainnet, using settings/Mainnet.toml
+    #[clap(
+        long = "testnet",
+        conflicts_with = "testnet",
+        conflicts_with = "devnet"
+    )]
+    pub mainnet: bool,
     /// Path to Clarinet.toml
     #[clap(long = "manifest-path")]
     pub manifest_path: Option<String>,
@@ -198,9 +173,6 @@ struct Deploy {
 
 #[derive(Clap)]
 struct Check {
-    /// Print debug info
-    #[clap(short = 'd')]
-    pub debug: bool,
     /// Path to Clarinet.toml
     #[clap(long = "manifest-path")]
     pub manifest_path: Option<String>,
@@ -216,14 +188,14 @@ pub fn main() {
                 current_dir.to_str().unwrap().to_owned()
             };
 
-            let changes = generators::get_changes_for_new_project(current_path, project_opts.name);
+            let changes = generate::get_changes_for_new_project(current_path, project_opts.name);
             execute_changes(changes);
         }
         Command::Contract(subcommand) => match subcommand {
             Contract::NewContract(new_contract) => {
                 let manifest_path = get_manifest_path_or_exit(new_contract.manifest_path);
 
-                let changes = generators::get_changes_for_new_contract(
+                let changes = generate::get_changes_for_new_contract(
                     manifest_path,
                     new_contract.name,
                     None,
@@ -278,7 +250,7 @@ pub fn main() {
                     let contract_name = components.last().unwrap();
 
                     if &contract_id == &fork_contract.contract_id {
-                        let mut change_set = generators::get_changes_for_new_contract(
+                        let mut change_set = generate::get_changes_for_new_contract(
                             manifest_path.clone(),
                             contract_name.to_string(),
                             Some(code),
@@ -288,7 +260,7 @@ pub fn main() {
                         changes.append(&mut change_set);
 
                         for dep in deps.iter() {
-                            let mut change_set = generators::get_changes_for_new_link(
+                            let mut change_set = generate::get_changes_for_new_link(
                                 manifest_path.clone(),
                                 dep.clone(),
                                 None,
@@ -300,16 +272,15 @@ pub fn main() {
                 execute_changes(changes);
             }
         },
-        Command::Console(cmd) => {
+        Command::Poke(cmd) => {
             let manifest_path = get_manifest_path_or_exit(cmd.manifest_path);
             let start_repl = true;
-            load_session(manifest_path, start_repl, "development".into())
-                .expect("Unable to start REPL");
+            load_session(manifest_path, start_repl, Network::Devnet).expect("Unable to start REPL");
         }
         Command::Check(cmd) => {
             let manifest_path = get_manifest_path_or_exit(cmd.manifest_path);
             let start_repl = false;
-            let res = load_session(manifest_path, start_repl, "development".into());
+            let res = load_session(manifest_path, start_repl, Network::Devnet);
             if let Err(e) = res {
                 println!("{}", e);
                 return;
@@ -318,7 +289,7 @@ pub fn main() {
         Command::Test(cmd) => {
             let manifest_path = get_manifest_path_or_exit(cmd.manifest_path);
             let start_repl = false;
-            let res = load_session(manifest_path.clone(), start_repl, "development".into());
+            let res = load_session(manifest_path.clone(), start_repl, Network::Devnet);
             if let Err(e) = res {
                 println!("{}", e);
                 return;
@@ -328,7 +299,7 @@ pub fn main() {
         Command::Run(cmd) => {
             let manifest_path = get_manifest_path_or_exit(cmd.manifest_path);
             let start_repl = false;
-            let res = load_session(manifest_path.clone(), start_repl, "development".into());
+            let res = load_session(manifest_path.clone(), start_repl, Network::Devnet);
             if let Err(e) = res {
                 println!("{}", e);
                 return;
@@ -341,161 +312,34 @@ pub fn main() {
                 manifest_path,
             );
         }
-        Command::Deploy(deploy) => {
+        Command::Publish(deploy) => {
             let manifest_path = get_manifest_path_or_exit(deploy.manifest_path);
-            let start_repl = false;
-            let mode = if deploy.mocknet == true {
-                "mocknet"
+
+            let network = if deploy.devnet == true {
+                Network::Devnet
             } else if deploy.testnet == true {
-                "testnet"
+                Network::Testnet
+            } else if deploy.mainnet == true {
+                // Network::Mainnet
+                // TODO(ludo): before supporting mainnet deployments, we want to add a pass
+                // making sure that addresses are consistent + handle other hard coded flags.
+                // Search for "mainnet handling".
+                panic!("Target deployment must be specified with --devnet, --testnet,  --mainnet")
             } else {
-                panic!("Target deployment must be specified with --mocknet or --testnet")
+                panic!("Target deployment must be specified with --devnet, --testnet,  --mainnet")
             };
-            let res = load_session(manifest_path, start_repl, mode.into());
-            if let Err(e) = res {
-                println!("{}", e);
-                return;
-            }
-            let settings = res.unwrap();
-
-            let mut deployers_nonces = BTreeMap::new();
-            let mut deployers_lookup = BTreeMap::new();
-            for account in settings.initial_accounts.iter() {
-                if account.name == "deployer" {
-                    deployers_lookup.insert("*", account.clone());
-                }
-            }
-
-            #[derive(Deserialize, Debug)]
-            struct Balance {
-                balance: String,
-                nonce: u64,
-                balance_proof: String,
-                nonce_proof: String,
-            }
-
-            let host = if mode == "mocknet" {
-                "http://localhost:20443"
-            } else {
-                "https://stacks-node-api.testnet.stacks.co"
+            match publish_contracts(manifest_path, network) {
+                Ok(results) => println!("{}", results.join("\n")),
+                Err(e) => println!("{}", e),
             };
-
-            for initial_contract in settings.initial_contracts.iter() {
-                let contract_name = initial_contract.name.clone().unwrap();
-
-                let payload = TransactionSmartContract {
-                    name: contract_name.as_str().into(),
-                    code_body: StacksString::from_string(&initial_contract.code).unwrap(),
-                };
-
-                let deployer = match deployers_lookup.get(contract_name.as_str()) {
-                    Some(deployer) => deployer,
-                    None => deployers_lookup.get("*").unwrap(),
-                };
-
-                let bip39_seed =
-                    match mnemonic::get_bip39_seed_from_mnemonic(&deployer.mnemonic, "") {
-                        Ok(bip39_seed) => bip39_seed,
-                        Err(_) => panic!(),
-                    };
-                let ext =
-                    ExtendedPrivKey::derive(&bip39_seed[..], deployer.derivation.as_str()).unwrap();
-                let secret_key = SecretKey::parse_slice(&ext.secret()).unwrap();
-                let public_key = PublicKey::from_secret_key(&secret_key);
-
-                let wrapped_public_key =
-                    Secp256k1PublicKey::from_slice(&public_key.serialize_compressed()).unwrap();
-                let wrapped_secret_key = Secp256k1PrivateKey::from_slice(&ext.secret()).unwrap();
-
-                let anchor_mode = TransactionAnchorMode::Any;
-                let tx_fee = 200 + initial_contract.code.len() as u64;
-
-                let nonce = match deployers_nonces.get(&deployer.name) {
-                    Some(nonce) => *nonce,
-                    None => {
-                        let request_url = format!(
-                            "{host}/v2/accounts/{addr}",
-                            host = host,
-                            addr = deployer.address,
-                        );
-
-                        let response: Balance = reqwest::blocking::get(&request_url)
-                            .expect("Unable to retrieve account")
-                            .json()
-                            .expect("Unable to parse contract");
-                        let nonce = response.nonce;
-                        deployers_nonces.insert(deployer.name.clone(), nonce);
-                        nonce
-                    }
-                };
-
-                let signer_addr = StacksAddress::from_public_keys(
-                    0,
-                    &AddressHashMode::SerializeP2PKH,
-                    1,
-                    &vec![wrapped_public_key],
-                )
-                .unwrap();
-
-                let spending_condition =
-                    TransactionSpendingCondition::Singlesig(SinglesigSpendingCondition {
-                        signer: signer_addr.bytes.clone(),
-                        nonce: nonce,
-                        tx_fee: tx_fee,
-                        hash_mode: SinglesigHashMode::P2PKH,
-                        key_encoding: TransactionPublicKeyEncoding::Compressed,
-                        signature: RecoverableSignature::empty(),
-                    });
-
-                let auth = TransactionAuth::Standard(spending_condition);
-                let unsigned_tx = StacksTransaction {
-                    version: TransactionVersion::Testnet,
-                    chain_id: 0x80000000, // MAINNET=0x00000001
-                    auth: auth,
-                    anchor_mode: anchor_mode,
-                    post_condition_mode: TransactionPostConditionMode::Deny,
-                    post_conditions: vec![],
-                    payload: TransactionPayload::SmartContract(payload),
-                };
-
-                let mut unsigned_tx_bytes = vec![];
-                unsigned_tx
-                    .consensus_serialize(&mut unsigned_tx_bytes)
-                    .expect("FATAL: invalid transaction");
-
-                let mut tx_signer = StacksTransactionSigner::new(&unsigned_tx);
-                tx_signer.sign_origin(&wrapped_secret_key).unwrap();
-                let signed_tx = tx_signer.get_tx().unwrap();
-
-                let tx_bytes = signed_tx.serialize_to_vec();
-                let client = reqwest::blocking::Client::new();
-                let path = format!("{}/v2/transactions", "http://localhost:20443");
-                let res = client
-                    .post(&path)
-                    .header("Content-Type", "application/octet-stream")
-                    .body(tx_bytes)
-                    .send()
-                    .unwrap();
-
-                if !res.status().is_success() {
-                    println!("{}", res.text().unwrap());
-                    panic!()
-                }
-                let txid: String = res.json().unwrap();
-
-                println!(
-                    "Deploying {} (txid: {}, nonce: {})",
-                    contract_name, txid, nonce
-                );
-                deployers_nonces.insert(deployer.name.clone(), nonce + 1);
-            }
-
-            // If mocknet, we should be pulling all the links.
-            // Get ordered list of contracts
-            // For each contract, get the nonce of the account deploying (if unknown)
-            // Create a StacksTransaction with the contract, the name.
-            // Sign the transaction
-            // Send the transaction
+        }
+        Command::Integrate(cmd) => {
+            let manifest_path = get_manifest_path_or_exit(cmd.manifest_path);
+            println!(
+                "Start orchestrating stacks-node, stacks-blockchain-api, bitcoind, bitcoin explorer, stacks-explorer"
+            );
+            let devnet = DevnetOrchestrator::new(manifest_path);
+            integrate::run_devnet(devnet);
         }
     };
 }

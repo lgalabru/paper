@@ -1,3 +1,4 @@
+use crate::publish::Network;
 use crate::types::{ChainConfig, MainConfig};
 use clarity_repl::{repl, Terminal};
 use std::fs;
@@ -6,7 +7,7 @@ use std::path::PathBuf;
 pub fn load_session(
     manifest_path: PathBuf,
     start_repl: bool,
-    env: String,
+    env: Network,
 ) -> Result<repl::SessionSettings, String> {
     let mut settings = repl::SessionSettings::default();
 
@@ -17,12 +18,10 @@ pub fn load_session(
     // chain_config_path.pop();
     chain_config_path.push("settings");
 
-    chain_config_path.push(if env == "mocknet" {
-        "Mocknet.toml"
-    } else if env == "testnet" {
-        "Testnet.toml"
-    } else {
-        "Development.toml"
+    chain_config_path.push(match env {
+        Network::Devnet => "Devnet.toml",
+        Network::Testnet => "Testnet.toml",
+        Network::Mainnet => "Mainnet.toml",
     });
 
     let mut project_config = MainConfig::from_path(&manifest_path);
@@ -30,6 +29,17 @@ pub fn load_session(
 
     let mut deployer_address = None;
     let mut initial_deployer = None;
+
+    settings.node = chain_config
+        .network
+        .node_rpc_address
+        .clone()
+        .take()
+        .unwrap_or(match env {
+            Network::Devnet => "http://127.0.0.1:20443".into(),
+            Network::Testnet => "https://stacks-node-api.testnet.stacks.co".into(),
+            Network::Mainnet => "https://stacks-node-api.mainnet.stacks.co".into(),
+        });
 
     for (name, account) in chain_config.accounts.iter() {
         let account = repl::settings::Account {

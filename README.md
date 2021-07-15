@@ -3,7 +3,7 @@
 Clarinet is a Clarity runtime packaged as a command line tool, designed to facilitate smart contract understanding,
 development, testing and deployment. Clarinet consists of a Clarity REPL and a testing harness, which, when used
 together allow you to rapidly develop and test a Clarity smart contract, with the need to deploy the contract to a local
-mocknet or testnet.
+devnet or testnet.
 
 Clarity is a **decidable** smart contract language that optimizes for predictability and security, designed by
 Blockstack. Smart contracts allow developers to encode essential business logic on a blockchain.
@@ -82,15 +82,16 @@ Clarinet will create a project directory with the following directory layout:
 ├── README.md
 ├── contracts
 ├── settings
-│   └── Development.toml
-│   └── Mocknet.toml
+│   └── Devnet.toml
+│   └── Testnet.toml
+│   └── Mainnet.toml
 └── tests
 ```
 
 The `Clarinet.toml` file contains configuration for the smart contracts in your project. When you create contracts in
 your project, Clarinet will add them to this file.
 
-The `settings/Development.toml` file contains configuration for accounts in the Clarinet console, including the seed
+The `settings/Devnet.toml` file contains configuration for accounts in the Clarinet console, including the seed
 phrases and initial balances. Initial balances are in microSTX.
 
 ### Add a new contract
@@ -111,8 +112,9 @@ in the `tests` directory.
 ├── contracts
 │   └── bbtc.clar
 ├── settings
-│   └── Development.toml
-│   └── Mocknet.toml
+│   └── Devnet.toml
+│   └── Mainnet.toml
+│   └── Testnet.toml
 └── tests
     └── bbtc_test.ts
 ```
@@ -174,13 +176,13 @@ You can exit the console by pressing `Ctrl + C` twice.
 Changes to contracts are not loaded into the console while it is running. If you make any changes to your contracts you
 must exit the console and run it again.
 
-### Deploy contracts to mocknet
+### Deploy contracts to Devnet
 
-If you are running a local mocknet, you can use Clarinet to deploy your contracts to that environment for testing and
+If you are running a local devnet, you can use Clarinet to deploy your contracts to that environment for testing and
 evaluation on a blockchain. Use the following command:
 
 ```bash
-$ clarinet deploy --mocknet
+$ clarinet deploy --devnet
 ```
 
 ## Contributing
