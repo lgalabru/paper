@@ -40,7 +40,7 @@ use clarity_repl::{
 };
 
 use clap::Clap;
-use secp256k1::{PublicKey, SecretKey};
+use libsecp256k1::{PublicKey, SecretKey};
 use tiny_hderive::bip32::ExtendedPrivKey;
 use toml;
 

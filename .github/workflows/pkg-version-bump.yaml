@@ -1,0 +1,23 @@
+##
+## Bumps the Clarinet version listed on various package managers.
+##
+
+name: Package Version Bump
+on:
+  release:
+    types:
+      - released
+
+jobs:
+  homebrew:
+    name: Homebrew
+    runs-on: macos-latest
+    steps:
+      - name: Homebrew version bump
+        run: |
+          git config --global user.name "Hiro DevOps"
+          git config --global user.email "45208873+blockstack-devops@users.noreply.github.com"
+
+          brew bump-formula-pr --no-browse \
+            --url https://github.com/${{ github.repository }}/archive/${GITHUB_REF##*/}.tar.gz \
+            ${{ github.event.repository.name }}

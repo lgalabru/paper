@@ -2,7 +2,7 @@ use crate::utils::mnemonic;
 use bip39::{Language, Mnemonic};
 use clarity_repl::clarity::util::secp256k1::Secp256k1PublicKey;
 use clarity_repl::clarity::util::StacksAddress;
-use secp256k1::{PublicKey, SecretKey};
+use libsecp256k1::{PublicKey, SecretKey};
 use std::io::{BufReader, Read};
 use std::path::PathBuf;
 use std::{collections::BTreeMap, fs::File};

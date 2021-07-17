@@ -25,7 +25,7 @@
             [
                 "@semantic-release/exec",
                 {
-                    "prepareCmd": "sed -i -e '1h;2,$H;$!d;g' -e 's@name = \"clarinet\"\\nversion = \"${lastRelease.version}\"@name = \"clarinet\"\\nversion = \"${nextRelease.version}\"@g' Cargo.toml Cargo.lock"
+                    "prepareCmd": "sed -i -e '1h;2,$H;$!d;g' -e 's@name = \"clarinet\"\\nversion = \"[^\"]*\"@name = \"clarinet\"\\nversion = \"${nextRelease.version}\"@g' Cargo.toml Cargo.lock"
                 }
             ],
             "@semantic-release/github",

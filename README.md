@@ -12,8 +12,36 @@ Blockstack. Smart contracts allow developers to encode essential business logic 
 
 ## Installation
 
-The recommended way to install Clarinet is through the Rust package manager, Cargo. Other installation methods are
-provided in case Cargo is not available to you.
+
+### Install from Homebrew (MacOS)
+
+```bash
+brew install clarinet
+```
+
+### Install from winget (Windows)
+
+```powershell
+winget install clarinet
+```
+
+### Install from a binary release
+
+To install Clarinet from pre-built binaries, download the latest release from the [releases page](https://github.com/hirosystems/clarinet/releases).
+Unzip the binary, then copy it to a location that is already in your path, such as `/usr/local/bin`.
+
+```sh
+unzip clarinet-linux-x64.zip -d .
+chmod +x ./clarinet
+mv ./clarinet /usr/local/bin
+```
+
+On MacOS, you may get security errors when trying to run the pre-compiled binary. You can resolve the security warning
+with with command
+
+```sh
+xattr -d com.apple.quarantine /path/to/downloaded/clarinet/binary
+```
 
 ### Install from source using Cargo
 
@@ -24,7 +52,7 @@ provided in case Cargo is not available to you.
 On Debian and Ubuntu-based distributions, please install the following packages before building Clarinet.
 
 ```bash
-sudo apt-get install build-essential pkg-config libssl-dev
+sudo apt install build-essential pkg-config libssl-dev
 ```
 
 #### Build Clarinet
@@ -36,18 +64,6 @@ git clone git@github.com:hirosystems/clarinet.git
 cd clarinet
 cargo install --path . --locked
 ```
-
-### Install from Homebrew (MacOS)
-
-The version of Clarinet installed by Homebrew is behind the official version installed by Cargo. It is not currently
-recommended to install Clarinet using Homebrew.
-
-```bash
-brew install hirosystems/clarinet/clarinet
-```
-
-Feel free to ⭐️ this repo! With 50+ stars, this package becomes eligible to `homebrew-core`, at which point it will be
-possible automate the repo to keep the version of Clarinet installed by Homebrew up to date.
 
 ## Getting started with Clarinet
 
@@ -172,6 +188,8 @@ $ clarinet deploy --mocknet
 ```
 
 ## Contributing
+
+We welcome contributions to Clarinet! The following sections provide information on how to contribute.
 
 ### Prerequisites
 

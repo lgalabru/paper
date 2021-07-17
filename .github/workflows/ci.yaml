@@ -3,10 +3,12 @@ on:
   pull_request:
   push:
     tags:
-      - 'v*'
+      - "v*"
     paths-ignore:
-      - '**/CHANGELOG.md'
-      - '**/package.json'
+      - "**/CHANGELOG.md"
+      - "**/package.json"
+      - "**/Cargo.toml"
+      - "**/Cargo.lock"
     branches:
       - main
       - develop
@@ -29,7 +31,7 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
-      
+
       - name: Install Rust toolchain
         uses: actions-rs/toolchain@v1
         with:
@@ -51,7 +53,7 @@ jobs:
         run: cargo install cargo-audit
 
       - name: Run audit
-        run: cargo audit
+        run: cargo audit --ignore RUSTSEC-2021-0076
 
       - name: Run rustfmt
         run: cargo fmt --all -- --check
@@ -179,6 +181,10 @@ jobs:
           profile: minimal
           override: true
 
+      - name: Install wix (Windows)
+        if: matrix.os == 'windows-latest'
+        run: cargo install cargo-wix
+
       - if: matrix.os != 'windows-latest'
         run: sudo chown -R $(whoami):$(id -ng) ~/.cargo/
 
@@ -210,19 +216,73 @@ jobs:
         #   CARGO_TARGET_ARMV7_UNKNOWN_LINUX_GNUEABIHF_LINKER: ${{ matrix.cc }}
         #   CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER: ${{ matrix.cc }}
 
+      - name: Code sign bin (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          $certificate_file_name = "${env:TEMP}\certificate.pfx"
+
+          $bytes_cert = [Convert]::FromBase64String('${{ secrets.WINDOWS_CODE_SIGNING_CERTIFICATE }}')
+          [IO.File]::WriteAllBytes(${certificate_file_name}, ${bytes_cert})
+
+          $signtool_path = ((Resolve-Path -Path "${env:ProgramFiles(x86)}/Windows Kits/10/bin/10*/x86").Path[-1]) + "/signtool.exe"
+          $bin_path = (Resolve-Path -Path "target/${{ matrix.target }}/release/*.exe").Path
+          & ${signtool_path} sign `
+            /d "Clarinet is a clarity runtime packaged as a command line tool, designed to facilitate smart contract understanding, development, testing and deployment." `
+            /du "https://github.com/hirosystems/clarinet" `
+            /tr http://timestamp.digicert.com `
+            /td sha256 `
+            /fd sha256 `
+            -f "${certificate_file_name}" `
+            -p "${{ secrets.WINDOWS_CODE_SIGNING_PASSWORD }}" `
+            "${bin_path}"
+
+      - name: Build Installer (Windows)
+        if: matrix.os == 'windows-latest'
+        run: cargo wix -v --no-build --nocapture
+
+      - name: Code sign installer (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          $certificate_file_name = "${env:TEMP}\certificate.pfx"
+
+          $bytes_cert = [Convert]::FromBase64String('${{ secrets.WINDOWS_CODE_SIGNING_CERTIFICATE }}')
+          [IO.File]::WriteAllBytes(${certificate_file_name}, ${bytes_cert})
+
+          $signtool_path = ((Resolve-Path -Path "${env:ProgramFiles(x86)}/Windows Kits/10/bin/10*/x86").Path[-1]) + "/signtool.exe"
+          $msi_path = (Resolve-Path -Path "target/wix/*.msi").Path
+          & ${signtool_path} sign `
+            /d "Clarinet is a clarity runtime packaged as a command line tool, designed to facilitate smart contract understanding, development, testing and deployment." `
+            /du "https://github.com/hirosystems/clarinet" `
+            /tr http://timestamp.digicert.com `
+            /td sha256 `
+            /fd sha256 `
+            -f "${certificate_file_name}" `
+            -p "${{ secrets.WINDOWS_CODE_SIGNING_PASSWORD }}" `
+            "${msi_path}"
+
+      # Don't compress for Windows because winget can't yet unzip files
       - name: Compress artifact (Not Windows)
         if: matrix.os != 'windows-latest'
-        run: zip --junk-paths ${{ matrix.platform }} ./target/${{ matrix.target }}/release/clarinet
+        run: zip --junk-paths clarinet-${{ matrix.platform }} ./target/${{ matrix.target }}/release/clarinet
 
-      - name: Compress artifact (Windows)
+      - name: Rename artifact (Windows)
         if: matrix.os == 'windows-latest'
-        run: Compress-Archive -Path ./target/${{ matrix.target }}/release/clarinet.exe -DestinationPath ${{ matrix.platform }}
+        run: mv target/wix/*.msi clarinet-${{ matrix.platform }}.msi
 
-      - name: Upload artifact
+      # Separate uploads to prevent paths from being preserved
+      - name: Upload artifact (Not Windows)
+        if: matrix.os != 'windows-latest'
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ matrix.platform }}
-          path: ${{ matrix.platform }}.zip
+          name: clarinet-${{ matrix.platform }}
+          path: clarinet-${{ matrix.platform }}.zip
+
+      - name: Upload artifact (Windows)
+        if: matrix.os == 'windows-latest'
+        uses: actions/upload-artifact@v2
+        with:
+          name: clarinet-${{ matrix.platform }}
+          path: clarinet-${{ matrix.platform }}.msi
 
       - name: Unit Tests
         run: cargo test --release --locked --target ${{ matrix.target }}
@@ -234,20 +294,27 @@ jobs:
             ./target/${{ matrix.target }}/release/clarinet test --manifest-path examples/${testdir}/Clarinet.toml
           done
 
-      # - name: Functional Tests (Windows)
-      #   if: matrix.os == 'windows-latest'
-      #   run: |
-      #     foreach($testdir in Get-ChildItem examples) {
-      #       ./target/${{ matrix.target }}/release/clarinet test --manifest-path examples/${testdir}/Clarinet.toml
-      #     }
+      - name: Functional Tests (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          foreach($testdir in Get-ChildItem examples) {
+            ./target/${{ matrix.target }}/release/clarinet test --manifest-path ${testdir}/Clarinet.toml
+          }
 
-      - name: Upload Artifacts to GH release
+      - name: Upload Artifacts to GH release (Not Windows)
         uses: svenstaro/upload-release-action@v2
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: startsWith(github.ref, 'refs/tags/v') && matrix.os != 'windows-latest'
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ${{ matrix.platform }}.zip
-          asset_name: ${{ matrix.platform }}
+          file: clarinet-${{ matrix.platform }}.zip
+          tag: ${{ github.ref }}
+
+      - name: Upload Artifacts to GH release (Windows)
+        uses: svenstaro/upload-release-action@v2
+        if: startsWith(github.ref, 'refs/tags/v') && matrix.os == 'windows-latest'
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: clarinet-${{ matrix.platform }}.msi
           tag: ${{ github.ref }}
 
       # Cleans the `./target` dir after the build such that only dependencies are cached on CI
@@ -268,7 +335,7 @@ jobs:
         id: docker_meta
         uses: docker/metadata-action@v3
         with:
-          images: blockstack/${{ github.event.repository.name }}
+          images: ${{ github.repository }}
           tags: |
             type=ref,event=branch
             type=ref,event=pr

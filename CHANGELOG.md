@@ -1,3 +1,11 @@
+## [0.14.2-develop.1](https://github.com/hirosystems/clarinet/compare/v0.14.1...v0.14.2-develop.1) (2021-07-16)
+
+
+### Bug Fixes
+
+* enforce cache eviction ([6ef7d63](https://github.com/hirosystems/clarinet/commit/6ef7d631b9e0661ae0c5bf4e0aa03c5dabfae4d7))
+* un-hard code path (clarinet deploy) ([b3e933a](https://github.com/hirosystems/clarinet/commit/b3e933a1aaa58a656eebfb29624c51cf48ba18ab))
+
 ## [0.14.1](https://github.com/hirosystems/clarinet/compare/v0.14.0...v0.14.1) (2021-06-28)
 
 

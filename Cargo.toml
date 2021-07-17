@@ -1,15 +1,15 @@
 [package]
 name = "clarinet"
-version = "0.14.1"
+version = "0.14.2-develop.1"
 authors = ["Ludo Galabru <ludo@hiro.so>"]
 edition = "2018"
 description = "Clarinet is a clarity runtime packaged as a command line tool, designed to facilitate smart contract understanding, development, testing and deployment."
 readme = "README.md"
-license = "GPL-3.0-only"
+license = "GPL-3.0"
 keywords = ["blockstack", "blockchain", "clarity", "smart-contract", "repl"]
 exclude = ["examples/**"]
-homepage = "https://github.com/lgalabru/clarinet"
-repository = "https://github.com/lgalabru/clarinet"
+homepage = "https://github.com/hirosystems/clarinet"
+repository = "https://github.com/hirosystems/clarinet"
 categories = ["command-line-utilities", "development-tools", "development-tools::build-utils"]
 
 [target.'cfg(windows)'.build-dependencies]
@@ -25,7 +25,7 @@ deno_core = { path = "./vendor/deno/core" }
 deno_runtime = { path = "./vendor/deno/runtime" }
 deno = { path = "./vendor/deno/cli" }
 # clarity_repl = { package = "clarity-repl", path = "../../clarity-repl", features = ["cli"] }
-clarity_repl = { package = "clarity-repl", version = "=0.13.3" }
+clarity_repl = { package = "clarity-repl", version = "=0.14.0" }
 bip39 = { version = "1.0.1", default-features = false }
 aes = "0.6.0"
 base64 = "0.13.0"
@@ -34,14 +34,14 @@ bs58 = "0.4.0"
 rand = "0.8.3"
 ring = "0.16.20"
 ripemd160 = "0.9.1"
-libsecp256k1 = "0.3.5"
+libsecp256k1 = "0.5.0"
 sha2 = "0.9.3"
 uuid = { version = "0.8.2", features = ["v4"] }
 hmac = "0.10.1"
 pbkdf2 = { version = "0.7.3", features=["parallel"], default-features = false }
 hex = "0.4.3"
 futures = "0.3.12"
-tokio = { version = "=1.6.1", features = ["full"] }
+tokio = { version = "=1.8.1", features = ["full"] }
 lazy_static = "1.4.0"
 atty = "0.2.14"
 termcolor = "1.1.2"
